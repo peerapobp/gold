@@ -1,5 +1,5 @@
-/* XAUUSD Analyzer service worker - build 202609041646 */
-const CACHE = 'xauusd-202609041646';
+/* XAUUSD Analyzer service worker - build 202609041653 */
+const CACHE = 'xauusd-202609041653';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => {
   self.skipWaiting();
