@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ฟังเพลง</title>
+<meta name="description" content="ฟังเพลงจากลิงก์ YouTube ทำคิวและเพลย์ลิสต์ของตัวเอง">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="theme-color" content="#0c0b12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ฟังเพลง">
+<style>
+:root{
+  --bg:#0c0b12; --bg2:#15141e; --bg3:#1e1d2a; --line:#2a2838; --line2:#3b3852;
+  --tx:#f3f2f8; --tx2:#aaa7c0; --tx3:#6f6c88;
+  --ac:#ff4d7d; --ac2:#9b5cff; --acsoft:rgba(255,77,125,.13);
+  --bad:#ff6b6b; --r:16px; --nav:62px;
+  --sb:env(safe-area-inset-bottom,0px); --st:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Sarabun",Roboto,sans-serif;
+  font-size:15px;line-height:1.5;min-height:100vh;padding-bottom:calc(var(--nav) + var(--sb) + 84px);overscroll-behavior-y:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,textarea,select{font:inherit;color:var(--tx)}
+[hidden]{display:none!important}
+.ic{width:24px;height:24px;fill:currentColor;flex:none;display:block}
+.wrap{max-width:720px;margin:0 auto;padding:0 14px}
+
+/* header */
+.top{display:flex;align-items:center;gap:10px;padding:calc(10px + var(--st)) 14px 10px;max-width:720px;margin:0 auto}
+.logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;color:#fff}
+.logo .ic{width:20px;height:20px}
+.brand{font-weight:800;font-size:19px;flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:700;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}
+.pill .ic{width:18px;height:18px}
+
+/* now playing */
+.np{max-width:720px;margin:0 auto;padding:0 14px 4px}
+.vid{position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--r);overflow:hidden;background:#000;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.vid iframe,.vid #yt{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vid-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:16px;color:var(--tx2);font-size:14px;
+  background:radial-gradient(circle at 30% 20%,#2c1742,#0c0b12 72%)}
+.vid-empty .big{width:54px;height:54px;margin:0 auto 10px;border-radius:17px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;color:#fff}
+.vid-empty .big .ic{width:30px;height:30px}
+.vid-empty small{color:var(--tx3)}
+.np-row{margin-top:12px;min-width:0}
+.np-title{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-artist{font-size:13px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np.compact .np-top{display:flex;gap:12px;align-items:center}
+.np.compact .vid{width:46%;max-width:250px;flex:none;border-radius:12px}
+.np.compact .vid-empty{font-size:11px;padding:6px}
+.np.compact .vid-empty .big,.np.compact .vid-empty small{display:none}
+.np.compact .np-row{margin-top:0;flex:1}
+.np.compact .np-title{white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;font-size:15px;line-height:1.35}
+.banner{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);color:#ffb3b3;font-size:13.5px;cursor:pointer}
+.seek{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12px;color:var(--tx2);font-variant-numeric:tabular-nums}
+.seek span{min-width:40px}
+.seek span:last-child{text-align:right}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:30px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:linear-gradient(90deg,var(--ac) var(--p,0%),var(--line2) var(--p,0%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;margin-top:-6px;box-shadow:0 0 0 4px rgba(255,77,125,.25)}
+input[type=range]::-moz-range-track{height:4px;border-radius:4px;background:var(--line2)}
+input[type=range]::-moz-range-progress{height:4px;border-radius:4px;background:var(--ac)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:0}
+.ctrls{display:flex;align-items:center;justify-content:space-between;margin:0 2px}
+.cb{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;color:var(--tx);position:relative}
+.cb:active{background:var(--bg3)}
+.cb .ic.lg{width:34px;height:34px}
+.cb.dim{color:var(--tx3)}
+.cb.on{color:var(--ac)}
+.cb.on::after{content:"";position:absolute;bottom:4px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--ac)}
+.cb.play{width:68px;height:68px;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;box-shadow:0 8px 26px rgba(255,77,125,.35)}
+.cb.play:active{transform:scale(.96)}
+.cb.play .ic{width:36px;height:36px}
+.ctrls2{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:var(--bg2);border:1px solid var(--line);font-size:13px;color:var(--tx2)}
+.chip .ic{width:18px;height:18px}
+.chip.on{color:var(--ac);border-color:rgba(255,77,125,.5);background:var(--acsoft)}
+
+/* sections */
+.sec{display:none;padding-top:6px}
+.sec.on{display:block}
+.sec-h{display:flex;align-items:center;gap:8px;margin:12px 0 8px;min-height:40px}
+.sec-h h2{font-size:21px;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cnt{font-size:13px;color:var(--tx2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 15px;border-radius:12px;background:var(--bg3);border:1px solid var(--line);font-weight:600;font-size:14px;white-space:nowrap}
+.btn:active{filter:brightness(1.2)}
+.btn.pri{background:linear-gradient(135deg,var(--ac),var(--ac2));border-color:transparent;color:#fff}
+.btn.danger{color:var(--bad);border-color:rgba(255,107,107,.35)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:10px}
+.btn .ic{width:18px;height:18px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.acts.end{justify-content:flex-end}
+.acts .sp{flex:1}
+.list{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:12px;padding:7px 4px 7px 6px;border-radius:12px;cursor:pointer}
+.row:active{background:var(--bg2)}
+.row.cur{background:var(--acsoft)}
+.row .th{width:74px;height:42px;border-radius:8px;object-fit:cover;background:var(--bg3);flex:none;display:grid;place-items:center;color:var(--tx3)}
+.row .meta{flex:1;min-width:0}
+.row .t{font-size:14.5px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35;word-break:break-word}
+.row.cur .t{color:var(--ac)}
+.row .t.ld{color:var(--tx3);font-weight:500}
+.row .a{font-size:12.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--tx2);flex:none}
+.ib:active{background:var(--bg3)}
+.ib .ic{width:22px;height:22px}
+.bad{color:var(--bad)}
+.eq{display:inline-flex;align-items:flex-end;justify-content:center;gap:2px;height:18px;width:40px;flex:none}
+.eq i{width:3px;height:5px;background:var(--ac);border-radius:2px}
+body.playing .eq i{animation:eq 1s ease-in-out infinite}
+body.playing .eq i:nth-child(2){animation-delay:-.45s}
+body.playing .eq i:nth-child(3){animation-delay:-.75s}
+@keyframes eq{0%,100%{height:5px}50%{height:17px}}
+@media (prefers-reduced-motion:reduce){body.playing .eq i{animation:none;height:12px}}
+.empty{text-align:center;color:var(--tx2);padding:30px 12px;font-size:14px}
+.empty > .ic{width:46px;height:46px;margin:0 auto 8px;color:var(--tx3)}
+.empty b{display:block;color:var(--tx);font-size:15.5px;margin-bottom:2px}
+.empty .btn{margin-top:14px}
+.field{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;outline:none}
+.field:focus{border-color:var(--ac)}
+textarea.field{min-height:92px;resize:vertical}
+select.field{appearance:none;-webkit-appearance:none;padding-right:34px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--tx2) 50%),linear-gradient(135deg,var(--tx2) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.srch{display:flex;gap:8px}
+.srch .field{flex:1;min-width:0}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card h3{font-size:15.5px;margin:0 0 8px}
+.card .field{background:var(--bg)}
+.hint{font-size:13px;color:var(--tx2)}
+.hint b{color:var(--tx)}
+p.hint{margin:6px 0}
+ul.hint,ol.hint{margin:6px 0;padding-left:20px}
+ul.hint li,ol.hint li{margin:4px 0}
+details{margin-top:10px}
+summary{cursor:pointer;color:var(--ac);font-size:13.5px;font-weight:600}
+.lbl{display:block;font-size:13px;color:var(--tx2);margin:10px 0 6px}
+.sw{display:flex;align-items:center;gap:12px;padding:9px 0;cursor:pointer}
+.sw + .sw{border-top:1px solid var(--line)}
+.sw .l{flex:1}
+.sw .l b{display:block;font-weight:600;font-size:14.5px}
+.sw .l small{color:var(--tx2);font-size:12.5px;display:block;line-height:1.4}
+.tg{position:relative;width:46px;height:28px;flex:none}
+.tg input{opacity:0;width:0;height:0;position:absolute}
+.tg span{position:absolute;inset:0;border-radius:999px;background:var(--line2);transition:.2s}
+.tg span::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.tg input:checked + span{background:var(--ac)}
+.tg input:checked + span::after{transform:translateX(18px)}
+
+/* bottom nav + mini player */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(14,13,20,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--line);padding-bottom:var(--sb)}
+.nav-in{max-width:720px;margin:0 auto;display:flex;height:var(--nav)}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--tx3);font-weight:600;min-width:0}
+.nav button.on{color:var(--tx)}
+.nav button.on .ic{color:var(--ac)}
+.mini{position:fixed;left:8px;right:8px;bottom:calc(var(--nav) + var(--sb) + 8px);z-index:49;max-width:704px;margin:0 auto;display:flex;align-items:center;gap:10px;
+  padding:7px 6px 7px 8px;border-radius:14px;background:rgba(34,32,49,.97);border:1px solid var(--line2);box-shadow:0 10px 30px rgba(0,0,0,.5);
+  transform:translateY(16px);opacity:0;pointer-events:none;transition:.2s;overflow:hidden;cursor:pointer}
+.mini.show{transform:none;opacity:1;pointer-events:auto}
+.mini img{width:58px;height:33px;border-radius:6px;object-fit:cover;background:#000;flex:none}
+.mini .m{flex:1;min-width:0}
+.mini .t{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .a{font-size:11.5px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .cb{width:42px;height:42px}
+.mini .bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--line2)}
+.mini .bar i{display:block;height:100%;width:0;background:var(--ac)}
+
+/* sheet, toast, pocket */
+.ov{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s}
+.ov.show{opacity:1;pointer-events:auto}
+.sheet{width:100%;max-width:560px;background:var(--bg2);border:1px solid var(--line);border-bottom:0;border-radius:20px 20px 0 0;
+  padding:6px 10px calc(14px + var(--sb));transform:translateY(30px);transition:transform .2s;max-height:82vh;overflow:auto}
+.ov.show .sheet{transform:none}
+.grab{width:40px;height:4px;border-radius:4px;background:var(--line2);margin:4px auto 10px}
+.sh-t{padding:0 8px 8px;font-weight:700;font-size:15px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sh-t small{display:block;color:var(--tx2);font-weight:500;font-size:12.5px}
+.it{display:flex;align-items:center;gap:14px;width:100%;padding:13px 10px;border-radius:12px;text-align:left;font-size:15px}
+.it:active{background:var(--bg3)}
+.it .ic{color:var(--tx2)}
+.it span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it small{color:var(--tx3);font-size:12.5px}
+.it.danger,.it.danger .ic{color:var(--bad)}
+.ask{padding:0 6px}
+.toast{position:fixed;left:50%;bottom:calc(var(--nav) + var(--sb) + 94px);transform:translate(-50%,10px);z-index:70;background:#2b2942;border:1px solid var(--line2);
+  padding:10px 14px;border-radius:12px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.2s;
+  display:flex;gap:14px;align-items:center;width:max-content;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{color:var(--ac);font-weight:700;white-space:nowrap}
+.pocket{position:fixed;inset:0;z-index:100;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.pocket.show{display:flex}
+.pk-box{text-align:center;transition:transform 1s}
+.pk-clock{font-size:56px;font-weight:200;color:#4a4a5e;font-variant-numeric:tabular-nums;line-height:1.1}
+.pk-title{font-size:14px;max-width:80vw;margin-top:8px;color:#3d3d4e}
+.pk-hint{position:absolute;bottom:calc(28px + var(--sb));font-size:12.5px;color:#2e2e3b}
+.helper{position:fixed;left:-500px;top:0;width:200px;height:200px;opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.14v13.72a1 1 0 0 0 1.52.85l10.6-6.86a1 1 0 0 0 0-1.7L9.52 4.29A1 1 0 0 0 8 5.14z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 5h3.2a.8.8 0 0 1 .8.8v12.4a.8.8 0 0 1-.8.8H7a.8.8 0 0 1-.8-.8V5.8A.8.8 0 0 1 7 5zm6.8 0H17a.8.8 0 0 1 .8.8v12.4a.8.8 0 0 1-.8.8h-3.2a.8.8 0 0 1-.8-.8V5.8a.8.8 0 0 1 .8-.8z"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></symbol>
+  <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></symbol>
+  <symbol id="i-repeat1" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4zm-4-2V9h-1l-2 1v1h1.5v4H13z"/></symbol>
+  <symbol id="i-queue" viewBox="0 0 24 24"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/></symbol>
+  <symbol id="i-lib" viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 5h-3v5.5c0 1.38-1.12 2.5-2.5 2.5S10 13.88 10 12.5s1.12-2.5 2.5-2.5c.57 0 1.08.19 1.5.51V5h4v2zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6z"/></symbol>
+  <symbol id="i-pl" viewBox="0 0 24 24"><path d="M19 9H2v2h17V9zm0-4H2v2h17V5zM2 15h13v-2H2v2zm15-2v6l5-3-5-3z"/></symbol>
+  <symbol id="i-add" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></symbol>
+  <symbol id="i-set" viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12.34 2.02C6.59 1.82 2 6.42 2 12c0 5.52 4.48 10 10 10 3.71 0 6.93-2.02 8.66-5.02-7.51-.25-12.09-8.43-8.32-14.96z"/></symbol>
+  <symbol id="i-screen" viewBox="0 0 24 24"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14zm-5-2.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"/></symbol>
+  <symbol id="i-less" viewBox="0 0 24 24"><path d="M7.41 18.59L8.83 20 12 16.83 15.17 20l1.41-1.41L12 14l-4.59 4.59zm9.18-13.18L15.17 4 12 7.17 8.83 4 7.41 5.41 12 10l4.59-4.59z"/></symbol>
+  <symbol id="i-more2" viewBox="0 0 24 24"><path d="M12 5.83L15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15 12 18.17z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
+  <symbol id="i-paste" viewBox="0 0 24 24"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0S9.6.84 9.18 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></symbol>
+  <symbol id="i-del" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
+  <symbol id="i-playnext" viewBox="0 0 24 24"><path d="M19 15l-6 6-1.42-1.42L15.17 16H4V4h2v10h9.17l-3.59-3.58L13 9l6 6z"/></symbol>
+  <symbol id="i-addq" viewBox="0 0 24 24"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM2 16h8v-2H2v2z"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></symbol>
+  <symbol id="i-upl" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="logo"><svg class="ic"><use href="#i-note"/></svg></div>
+  <div class="brand">ฟังเพลง</div>
+  <button class="pill" id="bInstall" type="button" hidden><svg class="ic"><use href="#i-dl"/></svg>ติดตั้งแอป</button>
+</header>
+
+<section class="np" id="np">
+  <div class="np-top">
+    <div class="vid">
+      <div id="yt"></div>
+      <div class="vid-empty" id="vidEmpty"><div><div class="big"><svg class="ic"><use href="#i-note"/></svg></div>เลือกเพลงเพื่อเริ่มฟัง<br><small>วางลิงก์ YouTube ได้ที่แท็บ “เพิ่มเพลง”</small></div></div>
+    </div>
+    <div class="np-row">
+      <div class="np-title" id="npTitle">ยังไม่ได้เลือกเพลง</div>
+      <div class="np-artist" id="npArtist">ฟังเพลงจาก YouTube ทำคิวและเพลย์ลิสต์ของคุณเอง</div>
+    </div>
+  </div>
+  <div class="banner" id="banner" hidden></div>
+  <div class="seek"><span id="tCur">0:00</span><input type="range" id="seek" min="0" max="1000" step="1" value="0" aria-label="ตำแหน่งเพลง"><span id="tDur">0:00</span></div>
+  <div class="ctrls">
+    <button class="cb dim" id="bShuffle" type="button" aria-label="สุ่มเพลง"><svg class="ic"><use href="#i-shuffle"/></svg></button>
+    <button class="cb" id="bPrev" type="button" aria-label="เพลงก่อนหน้า"><svg class="ic lg"><use href="#i-prev"/></svg></button>
+    <button class="cb play" id="bPlay" type="button" aria-label="เล่น หรือ หยุด"><svg class="ic"><use id="uPlay" href="#i-play"/></svg></button>
+    <button class="cb" id="bNext" type="button" aria-label="เพลงถัดไป"><svg class="ic lg"><use href="#i-next"/></svg></button>
+    <button class="cb on" id="bRepeat" type="button" aria-label="เล่นซ้ำ"><svg class="ic"><use id="uRepeat" href="#i-repeat"/></svg></button>
+  </div>
+  <div class="ctrls2">
+    <button class="chip" id="bSleep" type="button"><svg class="ic"><use href="#i-moon"/></svg><span id="sleepLbl">ตั้งเวลาปิด</span></button>
+    <button class="chip" id="bPocket" type="button"><svg class="ic"><use href="#i-screen"/></svg>โหมดจอดำ</button>
+    <button class="chip" id="bCompact" type="button"><svg class="ic"><use id="uCompact" href="#i-less"/></svg><span id="compactLbl">ย่อวิดีโอ</span></button>
+  </div>
+</section>
+
+<main class="wrap" id="main">
+  <section class="sec on" id="sec-queue">
+    <div class="sec-h"><h2>คิวเล่น</h2><span class="cnt" id="qCount"></span><button class="btn sm" id="bQClear" type="button">ล้างคิว</button></div>
+    <div class="list" id="qList"></div>
+  </section>
+
+  <section class="sec" id="sec-lib">
+    <div class="sec-h"><h2>คลังเพลง</h2><span class="cnt" id="libCount"></span></div>
+    <input class="field" id="libFilter" type="search" placeholder="ค้นหาในคลังเพลง…" autocomplete="off">
+    <div class="acts">
+      <button class="btn sm pri" id="bLibPlay" type="button"><svg class="ic"><use href="#i-play"/></svg>เล่นทั้งหมด</button>
+      <button class="btn sm" id="bLibShuf" type="button"><svg class="ic"><use href="#i-shuffle"/></svg>สุ่มเล่น</button>
+    </div>
+    <div class="list" id="libList"></div>
+  </section>
+
+  <section class="sec" id="sec-pl">
+    <div id="plIndex">
+      <div class="sec-h"><h2>เพลย์ลิสต์</h2><button class="btn sm pri" id="bPlNew" type="button"><svg class="ic"><use href="#i-plus"/></svg>สร้างใหม่</button></div>
+      <div class="list" id="plList"></div>
+    </div>
+    <div id="plDetail" hidden>
+      <div class="sec-h">
+        <button class="ib" id="bPlBack" type="button" aria-label="กลับ"><svg class="ic"><use href="#i-back"/></svg></button>
+        <h2 id="plName"></h2>
+        <button class="ib" id="bPlMore" type="button" aria-label="ตัวเลือกเพลย์ลิสต์"><svg class="ic"><use href="#i-more"/></svg></button>
+      </div>
+      <div class="acts">
+        <button class="btn sm pri" id="bPlPlay" type="button"><svg class="ic"><use href="#i-play"/></svg>เล่น</button>
+        <button class="btn sm" id="bPlShuf" type="button"><svg class="ic"><use href="#i-shuffle"/></svg>สุ่มเล่น</button>
+        <span class="sp"></span>
+        <button class="btn sm" id="bPlAdd" type="button"><svg class="ic"><use href="#i-plus"/></svg>เพิ่มเพลง</button>
+      </div>
+      <div class="list" id="plSongs"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="sec-add">
+    <div class="sec-h"><h2>เพิ่มเพลง</h2></div>
+    <div class="card">
+      <h3>วางลิงก์ YouTube</h3>
+      <textarea class="field" id="addText" placeholder="วางลิงก์เพลง หรือลิงก์เพลย์ลิสต์&#10;ใส่ได้หลายลิงก์ บรรทัดละ 1 ลิงก์"></textarea>
+      <label class="lbl" for="addTarget">เก็บไว้ที่</label>
+      <select class="field" id="addTarget"></select>
+      <div class="acts">
+        <button class="btn" id="bPaste" type="button"><svg class="ic"><use href="#i-paste"/></svg>วาง</button>
+        <span class="sp"></span>
+        <button class="btn" id="bAdd" type="button">เพิ่ม</button>
+        <button class="btn pri" id="bAddPlay" type="button"><svg class="ic"><use href="#i-play"/></svg>เพิ่มและเล่น</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>ค้นหาเพลง</h3>
+      <form class="srch" id="searchForm">
+        <input class="field" id="q" type="search" placeholder="ชื่อเพลง หรือ ศิลปิน" enterkeyhint="search" autocomplete="off">
+        <button class="btn pri" type="submit" aria-label="ค้นหา"><svg class="ic"><use href="#i-search"/></svg></button>
+      </form>
+      <p class="hint" id="searchHint"></p>
+      <div class="list" id="results"></div>
+    </div>
+    <div class="card">
+      <h3>แชร์จากแอป YouTube (Android)</h3>
+      <p class="hint">เมื่อติดตั้งแอปนี้ลงเครื่องแล้ว เปิดเพลงในแอป YouTube → กด <b>แชร์</b> → เลือก <b>ฟังเพลง</b> เพลงจะถูกเพิ่มและเล่นทันที</p>
+      <p class="hint">บน iPhone ให้กด <b>แชร์ → คัดลอกลิงก์</b> แล้วกลับมากดปุ่ม <b>วาง</b> ด้านบน</p>
+    </div>
+  </section>
+
+  <section class="sec" id="sec-set">
+    <div class="sec-h"><h2>ตั้งค่า</h2></div>
+    <div class="card">
+      <h3>การเล่น</h3>
+      <label class="sw"><span class="l"><b>พยายามเล่นต่อเมื่อปิดจอ</b><small>ถ้าเพลงหยุดเองตอนล็อกจอหรือสลับแอป แอปจะสั่งให้เล่นต่อ (ได้ผลดีบน Android)</small></span><span class="tg"><input type="checkbox" id="setBg"><span></span></span></label>
+      <label class="sw"><span class="l"><b>ย่อวิดีโอให้เล็ก</b><small>เหลือพื้นที่ดูรายการเพลงมากขึ้น</small></span><span class="tg"><input type="checkbox" id="setCompact"><span></span></span></label>
+    </div>
+    <div class="card">
+      <h3>ค้นหาเพลงในแอป (ไม่บังคับ)</h3>
+      <p class="hint">ใส่ YouTube API key (ฟรี) เพื่อค้นหาเพลงได้ในแอปเลย ถ้าไม่ใส่ ปุ่มค้นหาจะเปิดหน้า YouTube ให้แทน</p>
+      <div class="srch"><input class="field" id="setKey" type="text" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="AIza…"><button class="btn" id="bKeySave" type="button">บันทึก</button></div>
+      <details>
+        <summary>วิธีขอ API key ฟรี</summary>
+        <ol class="hint">
+          <li>เข้า <b>console.cloud.google.com</b> แล้วล็อกอินด้วยบัญชี Google</li>
+          <li>สร้างโปรเจกต์ใหม่ ตั้งชื่ออะไรก็ได้</li>
+          <li>ไปที่ <b>APIs &amp; Services → Library</b> ค้นหา <b>YouTube Data API v3</b> แล้วกด <b>Enable</b></li>
+          <li>ไปที่ <b>Credentials → Create credentials → API key</b> คัดลอกมาวางด้านบน</li>
+          <li>แนะนำ: ในหน้า key ตั้ง <b>Website restrictions</b> เป็น <b id="keyOrigin"></b> เพื่อไม่ให้คนอื่นเอาไปใช้</li>
+        </ol>
+        <p class="hint">โควตาฟรีค้นหาได้ประมาณ 100 ครั้งต่อวัน</p>
+      </details>
+    </div>
+    <div class="card" id="installCard">
+      <h3>ติดตั้งลงโทรศัพท์</h3>
+      <p class="hint"><b>Android (Chrome):</b> แตะเมนู ⋮ มุมขวาบน → <b>ติดตั้งแอป</b> หรือ <b>เพิ่มลงในหน้าจอหลัก</b></p>
+      <p class="hint"><b>iPhone (Safari):</b> แตะปุ่มแชร์ (สี่เหลี่ยมมีลูกศรขึ้น) → <b>เพิ่มไปยังหน้าจอโฮม</b></p>
+    </div>
+    <div class="card">
+      <h3>สำรองข้อมูล</h3>
+      <p class="hint">รายการเพลงและเพลย์ลิสต์เก็บอยู่ในเครื่องนี้เท่านั้น ส่งออกเป็นไฟล์ไว้เผื่อเปลี่ยนเครื่อง</p>
+      <div class="acts">
+        <button class="btn" id="bExport" type="button"><svg class="ic"><use href="#i-dl"/></svg>ส่งออก</button>
+        <button class="btn" id="bImport" type="button"><svg class="ic"><use href="#i-upl"/></svg>นำเข้า</button>
+        <input type="file" id="fileIn" accept="application/json,.json" hidden>
+      </div>
+    </div>
+    <div class="card">
+      <h3>เรื่องโฆษณาและการเล่นตอนปิดจอ</h3>
+      <ul class="hint">
+        <li>แอปนี้ไม่มีโฆษณาของตัวเอง และเล่นผ่านตัวเล่นทางการของ YouTube (โหมดความเป็นส่วนตัว) แต่ <b>บางคลิป YouTube อาจยังแทรกโฆษณาในตัวเล่น</b> ซึ่งแอปปิดให้ไม่ได้</li>
+        <li>การเล่นตอนล็อกจอขึ้นกับรุ่นเครื่องและเบราว์เซอร์ ถ้าเพลงหยุด ให้ใช้ <b>โหมดจอดำ</b> แทน: จอติดอยู่แต่ดำสนิท กินแบตน้อย ใส่กระเป๋าได้</li>
+        <li>คลิปที่เจ้าของปิดการเล่นนอก YouTube จะเล่นในแอปไม่ได้ แอปจะข้ามไปเพลงถัดไปให้</li>
+      </ul>
+    </div>
+    <div class="card">
+      <button class="btn danger" id="bReset" type="button"><svg class="ic"><use href="#i-del"/></svg>ล้างข้อมูลทั้งหมด</button>
+      <p class="hint" style="margin-top:10px">เวอร์ชัน <span id="ver"></span></p>
+    </div>
+  </section>
+</main>
+
+<div class="mini" id="mini" role="button" aria-label="กลับไปที่ตัวเล่น">
+  <img id="miniImg" alt="">
+  <div class="m"><div class="t" id="miniTitle"></div><div class="a" id="miniArtist"></div></div>
+  <button class="cb" id="miniPlay" type="button" aria-label="เล่น หรือ หยุด"><svg class="ic"><use id="uMiniPlay" href="#i-play"/></svg></button>
+  <button class="cb" id="miniNext" type="button" aria-label="เพลงถัดไป"><svg class="ic"><use href="#i-next"/></svg></button>
+  <div class="bar"><i id="miniBar"></i></div>
+</div>
+
+<nav class="nav"><div class="nav-in">
+  <button type="button" data-tab="queue" class="on"><svg class="ic"><use href="#i-queue"/></svg>คิว</button>
+  <button type="button" data-tab="lib"><svg class="ic"><use href="#i-lib"/></svg>คลังเพลง</button>
+  <button type="button" data-tab="pl"><svg class="ic"><use href="#i-pl"/></svg>เพลย์ลิสต์</button>
+  <button type="button" data-tab="add"><svg class="ic"><use href="#i-add"/></svg>เพิ่มเพลง</button>
+  <button type="button" data-tab="set"><svg class="ic"><use href="#i-set"/></svg>ตั้งค่า</button>
+</div></nav>
+
+<div class="ov" id="ov" aria-hidden="true"><div class="sheet" id="sheet" role="dialog"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="pocket" id="pocket"><div class="pk-box" id="pkBox"><div class="pk-clock" id="pkClock"></div><div class="pk-title" id="pkTitle"></div></div><div class="pk-hint">แตะ 2 ครั้งเพื่อกลับ</div></div>
+<noscript><p style="padding:20px">ต้องเปิด JavaScript เพื่อใช้งานแอปนี้</p></noscript>
+
+<script>
+(() => {
+'use strict';
+const VERSION = '1.0 (2026-11-23)';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ic = n => `<svg class="ic" aria-hidden="true"><use href="#${n}"/></svg>`;
+const ID_RE = /^[A-Za-z0-9_-]{11}$/;
+const fmt = t => {
+  t = Math.max(0, Math.floor(t || 0));
+  const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), s = t % 60;
+  return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0');
+};
+const thumb = id => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+const watchUrl = id => 'https://www.youtube.com/watch?v=' + id;
+const shuffleArr = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const decodeHtml = s => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
+
+/* ================= state ================= */
+const LS = 'fangpleng.v1';
+const defaults = () => ({
+  songs: {}, order: [], playlists: [],
+  queue: [], qi: -1, qOrig: null,
+  shuffle: false, repeat: 'all', lastPos: 0,
+  settings: { apiKey: '', bgResume: true, compact: false }
+});
+let S = defaults();
+try {
+  const raw = localStorage.getItem(LS);
+  if (raw) { const d = JSON.parse(raw); S = Object.assign(defaults(), d); S.settings = Object.assign(defaults().settings, d.settings || {}); }
+} catch (e) {}
+sanitize(); prune();
+
+function sanitize() {
+  if (!S.songs || typeof S.songs !== 'object') S.songs = {};
+  S.order = Array.isArray(S.order) ? S.order.filter(id => ID_RE.test(id)) : [];
+  S.playlists = Array.isArray(S.playlists) ? S.playlists
+    .filter(p => p && typeof p.name === 'string' && Array.isArray(p.ids))
+    .map(p => Object.assign({}, p, { id: p.id || uid(), ids: p.ids.filter(id => ID_RE.test(id)) })) : [];
+  S.queue = Array.isArray(S.queue) ? S.queue.filter(id => ID_RE.test(id)) : [];
+  if (!Array.isArray(S.qOrig)) S.qOrig = null;
+  if (!(S.qi >= 0 && S.qi < S.queue.length)) S.qi = S.queue.length ? 0 : -1;
+  if (!['off', 'all', 'one'].includes(S.repeat)) S.repeat = 'all';
+  for (const id of [...S.order, ...S.queue]) if (!S.songs[id]) S.songs[id] = { id, title: '', author: '', added: Date.now() };
+  S.playlists.forEach(p => p.ids.forEach(id => { if (!S.songs[id]) S.songs[id] = { id, title: '', author: '', added: Date.now() }; }));
+}
+function prune() { // forget titles of songs no longer referenced anywhere
+  const keep = new Set([...S.order, ...S.queue, ...(S.qOrig || [])]);
+  S.playlists.forEach(p => p.ids.forEach(id => keep.add(id)));
+  for (const id of Object.keys(S.songs)) if (!keep.has(id)) delete S.songs[id];
+}
+let saveT = 0, saveWarned = false;
+function save() { clearTimeout(saveT); saveT = setTimeout(saveNow, 250); }
+function saveNow() {
+  clearTimeout(saveT);
+  try { localStorage.setItem(LS, JSON.stringify(S)); }
+  catch (e) { if (!saveWarned) { saveWarned = true; toast('บันทึกข้อมูลไม่ได้ (พื้นที่เต็มหรือเปิดโหมดส่วนตัว)'); } }
+}
+addEventListener('pagehide', saveNow);
+
+const curId = () => S.queue[S.qi];
+const getPl = id => S.playlists.find(p => p.id === id);
+function ensureSong(id) {
+  if (!S.songs[id]) S.songs[id] = { id, title: '', author: '', added: Date.now() };
+  if (!S.songs[id].title) needMeta(id);
+  return S.songs[id];
+}
+
+/* ================= link parsing ================= */
+function parseLinks(text) {
+  const vids = [], lists = [], seenV = new Set(), seenL = new Set();
+  const addV = id => { if (!seenV.has(id)) { seenV.add(id); vids.push(id); } };
+  const addL = (list, explicit) => { if (!seenL.has(list)) { seenL.add(list); lists.push({ list, explicit }); } };
+  for (const line of String(text || '').split(/\r?\n/)) {
+   const ln = line.trim();
+   if (ID_RE.test(ln)) { addV(ln); continue; } // a bare video ID only counts when it is alone on its line
+   for (let tok of ln.split(/[\s,<>"'()\[\]]+/)) {
+    if (!tok) continue;
+    let u;
+    try { u = new URL(/^https?:\/\//i.test(tok) ? tok : 'https://' + tok); } catch (e) { continue; }
+    const host = u.hostname.toLowerCase().replace(/^(www|m|music)\./, '');
+    let id = null;
+    const list = u.searchParams.get('list');
+    if (host === 'youtu.be') id = u.pathname.slice(1).split('/')[0];
+    else if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+      if (u.pathname === '/watch') id = u.searchParams.get('v');
+      else { const m = u.pathname.match(/^\/(?:shorts|embed|live|v|e)\/([A-Za-z0-9_-]{11})/); if (m) id = m[1]; }
+    } else continue;
+    if (id && ID_RE.test(id)) addV(id);
+    if (list && /^[A-Za-z0-9_-]{10,}$/.test(list)) {
+      const explicit = !id || u.pathname === '/playlist';
+      if (explicit || !/^(RD|UL|LL|WL)/.test(list)) addL(list, explicit);
+    }
+   }
+  }
+  return { vids, lists };
+}
+
+/* ================= titles (oEmbed) ================= */
+const metaQ = [], metaSeen = new Set();
+let metaBusy = 0;
+function needMeta(id) { if (metaSeen.has(id)) return; metaSeen.add(id); metaQ.push(id); pumpMeta(); }
+function pumpMeta() {
+  while (metaBusy < 4 && metaQ.length) {
+    const id = metaQ.shift();
+    metaBusy++;
+    oembed(watchUrl(id)).then(m => {
+      const s = S.songs[id];
+      if (m && s && !s.title) { s.title = m.title; s.author = m.author; save(); patchSong(id); }
+    }).finally(() => { metaBusy--; pumpMeta(); });
+  }
+}
+async function oembed(url) {
+  const eps = ['https://www.youtube.com/oembed?format=json&url=', 'https://noembed.com/embed?url='];
+  for (const ep of eps) {
+    try {
+      const r = await fetch(ep + encodeURIComponent(url));
+      if (!r.ok) continue;
+      const j = await r.json();
+      if (j && j.title) return { title: String(j.title), author: String(j.author_name || '') };
+    } catch (e) {}
+  }
+  return null;
+}
+
+/* ================= YouTube player ================= */
+let P = null, pReady = false, pending = null, pState = -1, isPlaying = false;
+let userPaused = false, errStreak = 0, hiddenAt = 0, playingAtHide = false, apiTimer = 0, playedUntil = 0;
+
+window.onYouTubeIframeAPIReady = () => {
+  P = new YT.Player('yt', {
+    host: 'https://www.youtube-nocookie.com',
+    width: '100%', height: '100%',
+    playerVars: { playsinline: 1, rel: 0, modestbranding: 1, iv_load_policy: 3, origin: location.origin },
+    events: { onReady, onStateChange, onError }
+  });
+};
+function loadYT() {
+  const s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  s.async = true;
+  s.onerror = apiFail;
+  document.head.appendChild(s);
+  apiTimer = setTimeout(() => { if (!pReady) apiFail(); }, 20000);
+}
+function apiFail() { showBanner('โหลดตัวเล่น YouTube ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วแตะที่นี่เพื่อลองใหม่', () => location.reload()); }
+function showBanner(msg, fn) { const b = $('#banner'); b.textContent = msg; b.hidden = false; b.onclick = fn || null; }
+function hideBanner() { $('#banner').hidden = true; }
+
+function onReady() {
+  pReady = true; clearTimeout(apiTimer); hideBanner();
+  try { P.setVolume(100); P.unMute(); } catch (e) {}
+  if (pending) { const p = pending; pending = null; p.autoplay ? P.loadVideoById(p.id) : P.cueVideoById(p.id); }
+  else if (curId()) P.cueVideoById(curId(), Math.max(0, (S.lastPos || 0) - 2));
+}
+function onStateChange(e) {
+  const st = e.data;
+  if (pState === 1 && st !== 1 && !userPaused) playedUntil = Date.now();
+  pState = st;
+  if (st === 1) {
+    isPlaying = true; userPaused = false; errStreak = 0;
+    const id = curId(), s = id && S.songs[id];
+    if (s) {
+      if (s.err) { delete s.err; patchSong(id); }
+      try {
+        const vd = P.getVideoData();
+        if (vd && vd.video_id === id && vd.title && !s.title) { s.title = vd.title; s.author = vd.author || ''; patchSong(id); }
+      } catch (err) {}
+      save();
+    }
+  } else if (st === 0 || st === 2 || st === 5) isPlaying = false;
+
+  // the phone paused us because the screen turned off / app went to background -> resume
+  if (st === 2 && document.hidden && S.settings.bgResume && playingAtHide && !userPaused && Date.now() - hiddenAt < 3000) {
+    setTimeout(() => { if (document.hidden && !userPaused) try { P.playVideo(); } catch (err) {} }, 300);
+  }
+  if (st === 0) {
+    if (sleepEnd) { sleepEnd = false; updateSleep(); wakeOffIfIdle(); toast('ครบเวลาที่ตั้งไว้ หยุดเล่นแล้ว'); }
+    else next(true);
+  }
+  updateButtons();
+}
+function onError(e) {
+  const code = e.data, id = curId();
+  const msg = (code === 101 || code === 150) ? 'เจ้าของคลิปไม่อนุญาตให้เล่นนอก YouTube'
+    : code === 100 ? 'คลิปนี้ถูกลบหรือเป็นส่วนตัว'
+    : code === 2 ? 'ลิงก์คลิปไม่ถูกต้อง' : 'เล่นคลิปนี้ไม่ได้';
+  if (id && S.songs[id]) { S.songs[id].err = code; save(); patchSong(id); }
+  errStreak++;
+  const canSkip = S.queue.length > 1 && errStreak < Math.min(S.queue.length, 8) && (S.qi < S.queue.length - 1 || S.repeat !== 'off');
+  if (canSkip) {
+    toast(msg + ' — ข้ามไปเพลงถัดไป', { label: 'เปิดใน YouTube', fn: () => openYT(id) });
+    setTimeout(() => playIndex(S.qi < S.queue.length - 1 ? S.qi + 1 : 0), 1200);
+  } else {
+    isPlaying = false; updateButtons();
+    toast(msg, { label: 'เปิดใน YouTube', fn: () => openYT(id) });
+  }
+}
+
+/* ================= playback control ================= */
+function playIndex(i, autoplay = true) {
+  if (i < 0 || i >= S.queue.length) return;
+  S.qi = i; S.lastPos = 0;
+  const id = S.queue[i];
+  ensureSong(id);
+  if (autoplay) userPaused = false;
+  if (pReady) { autoplay ? P.loadVideoById(id) : P.cueVideoById(id); }
+  else pending = { id, autoplay };
+  save(); updateNP(); renderTab();
+}
+function playList(ids, startId) {
+  if (!ids.length) return;
+  ids.forEach(ensureSong);
+  let start = Math.max(0, ids.indexOf(startId));
+  if (S.shuffle) {
+    S.qOrig = ids.slice();
+    const first = ids[start];
+    S.queue = [first, ...shuffleArr(ids.filter((_, k) => k !== start))];
+    start = 0;
+  } else { S.queue = ids.slice(); S.qOrig = null; }
+  playIndex(start);
+}
+function playNowMany(ids) {
+  if (!ids.length) return;
+  ids.forEach(ensureSong);
+  if (S.qi < 0 || !S.queue.length) { S.queue = ids.slice(); S.qOrig = null; return playIndex(0); }
+  S.queue.splice(S.qi + 1, 0, ...ids);
+  if (S.qOrig) S.qOrig.push(...ids);
+  playIndex(S.qi + 1);
+}
+function playNext(ids) {
+  ids.forEach(ensureSong);
+  if (!S.queue.length) return playNowMany(ids);
+  S.queue.splice(S.qi + 1, 0, ...ids);
+  if (S.qOrig) S.qOrig.push(...ids);
+  save(); renderTab();
+  toast(ids.length > 1 ? `จะเล่น ${ids.length} เพลงถัดไป` : 'จะเล่นเป็นเพลงถัดไป');
+}
+function addToQueue(ids) {
+  ids.forEach(ensureSong);
+  const wasEmpty = !S.queue.length;
+  S.queue.push(...ids);
+  if (S.qOrig) S.qOrig.push(...ids);
+  if (wasEmpty) playIndex(0, false); else { save(); renderTab(); }
+  toast('เพิ่มต่อท้ายคิวแล้ว');
+}
+function videoLoaded() { try { const vd = P.getVideoData(); return !!(vd && vd.video_id === curId()); } catch (e) { return false; } }
+function play() {
+  userPaused = false;
+  if (!S.queue.length) {
+    if (S.order.length) return playList(S.order, S.order[0]);
+    toast('ยังไม่มีเพลง ไปเพิ่มเพลงกันก่อน');
+    return switchTab('add');
+  }
+  if (S.qi < 0) return playIndex(0);
+  if (!pReady) { pending = { id: curId(), autoplay: true }; return; }
+  if (videoLoaded()) P.playVideo(); else P.loadVideoById(curId());
+}
+function pause() { userPaused = true; if (pReady) P.pauseVideo(); }
+function togglePlay() { (isPlaying || pState === 3) ? pause() : play(); }
+function next(auto = false) {
+  if (!S.queue.length) return;
+  if (auto && S.repeat === 'one') { P.seekTo(0, true); P.playVideo(); return; }
+  if (S.qi < S.queue.length - 1) return playIndex(S.qi + 1);
+  if (S.repeat === 'all') return playIndex(0);
+  if (!auto) toast('สุดคิวแล้ว');
+  isPlaying = false; updateButtons(); wakeOffIfIdle();
+}
+function prev() {
+  if (!S.queue.length) return;
+  let t = 0; try { t = P.getCurrentTime(); } catch (e) {}
+  if (t > 3 || S.qi <= 0) { if (pReady) P.seekTo(0, true); return; }
+  playIndex(S.qi - 1);
+}
+function setShuffle(on) {
+  S.shuffle = on;
+  const cur = curId();
+  if (on) {
+    S.qOrig = S.queue.slice();
+    const rest = shuffleArr(S.queue.filter((_, k) => k !== S.qi));
+    S.queue = cur !== undefined ? [cur, ...rest] : rest;
+    S.qi = cur !== undefined ? 0 : -1;
+  } else if (S.qOrig) {
+    const inQ = new Set(S.queue), inOrig = new Set(S.qOrig);
+    S.queue = S.qOrig.filter(id => inQ.has(id)).concat(S.queue.filter(id => !inOrig.has(id)));
+    S.qi = cur !== undefined ? Math.max(0, S.queue.indexOf(cur)) : -1;
+    S.qOrig = null;
+  }
+  save(); updateButtons(); renderTab();
+  toast(on ? 'เปิดสุ่มเพลง' : 'ปิดสุ่มเพลง');
+}
+function cycleRepeat() {
+  S.repeat = S.repeat === 'all' ? 'one' : S.repeat === 'one' ? 'off' : 'all';
+  save(); updateButtons();
+  toast({ all: 'เล่นซ้ำทั้งคิว', one: 'เล่นซ้ำเพลงเดียว', off: 'ไม่เล่นซ้ำ' }[S.repeat]);
+}
+function openYT(id) { if (id) window.open(watchUrl(id), '_blank', 'noopener'); }
+
+/* background: if the phone pauses the video when the screen goes off, start it again */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    hiddenAt = Date.now(); playingAtHide = isPlaying || (!userPaused && Date.now() - playedUntil < 1500); saveNow();
+    if (S.settings.bgResume && playingAtHide) [700, 1800].forEach(ms => setTimeout(bgKick, ms));
+  } else {
+    if (pocketOn) wakeOn();
+    tick();
+  }
+});
+function bgKick() {
+  if (!document.hidden || userPaused || !pReady) return;
+  try { if (P.getPlayerState() === 2) P.playVideo(); } catch (e) {}
+}
+
+/* lock-screen controls (used when the browser hands them to the page) */
+if ('mediaSession' in navigator) {
+  const h = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} };
+  h('play', play); h('pause', pause); h('previoustrack', prev); h('nexttrack', () => next(false));
+}
+
+/* ================= progress / timers ================= */
+const seek = $('#seek');
+let seeking = false, tickN = 0;
+const setFill = () => seek.style.setProperty('--p', (seek.value / 10) + '%');
+seek.addEventListener('input', () => { seeking = true; let d = 0; try { d = P.getDuration(); } catch (e) {} $('#tCur').textContent = fmt(seek.value / 1000 * d); setFill(); });
+['pointerup', 'touchend', 'pointercancel'].forEach(ev => seek.addEventListener(ev, () => setTimeout(() => { seeking = false; }, 400)));
+seek.addEventListener('change', () => { let d = 0; try { d = P.getDuration(); } catch (e) {} if (d && pReady) P.seekTo(seek.value / 1000 * d, true); seeking = false; });
+function tick() {
+  if (pReady && P && P.getCurrentTime) {
+    let cur = 0, dur = 0;
+    try { cur = P.getCurrentTime() || 0; dur = P.getDuration() || 0; } catch (e) {}
+    if (!document.hidden) {
+      if (!seeking) { seek.value = dur ? Math.round(cur / dur * 1000) : 0; setFill(); $('#tCur').textContent = fmt(cur); }
+      $('#tDur').textContent = fmt(dur);
+      $('#miniBar').style.width = (dur ? cur / dur * 100 : 0) + '%';
+    }
+    const s = S.songs[curId()];
+    if (s && dur > 0 && !s.dur) { s.dur = Math.round(dur); save(); }
+    if (isPlaying && ++tickN % 10 === 0) { S.lastPos = cur; save(); }
+  }
+  if (sleepAt && Date.now() >= sleepAt) { sleepAt = 0; pause(); updateSleep(); wakeOffIfIdle(); toast('ครบเวลาที่ตั้งไว้ หยุดเล่นแล้ว'); }
+  else if (sleepAt && !document.hidden && tickN % 4 === 0) updateSleep();
+}
+setInterval(tick, 500);
+
+/* sleep timer */
+let sleepAt = 0, sleepEnd = false;
+function updateSleep() {
+  const b = $('#bSleep'), l = $('#sleepLbl');
+  if (sleepEnd) { l.textContent = 'ปิดเมื่อจบเพลงนี้'; b.classList.add('on'); }
+  else if (sleepAt) { l.textContent = 'ปิดใน ' + Math.max(1, Math.ceil((sleepAt - Date.now()) / 60000)) + ' นาที'; b.classList.add('on'); }
+  else { l.textContent = 'ตั้งเวลาปิด'; b.classList.remove('on'); }
+}
+function sleepMenu() {
+  const set = (min, label) => () => {
+    sleepEnd = min === 'end'; sleepAt = typeof min === 'number' ? Date.now() + min * 60000 : 0;
+    updateSleep(); toast(label);
+  };
+  const items = [15, 30, 45, 60, 90].map(m => ({ ic: 'i-moon', label: m + ' นาที', fn: set(m, `จะหยุดเล่นใน ${m} นาที`) }));
+  items.push({ ic: 'i-note', label: 'เมื่อจบเพลงนี้', fn: set('end', 'จะหยุดเมื่อจบเพลงนี้') });
+  if (sleepAt || sleepEnd) items.push({ ic: 'i-close', label: 'ยกเลิกตั้งเวลา', fn: set(0, 'ยกเลิกตั้งเวลาแล้ว') });
+  menu('ตั้งเวลาปิดเพลง', items);
+}
+
+/* pocket mode: keep screen on, show black screen */
+let wl = null, pocketOn = false, pocketFs = false, pkIv = 0, lastTap = 0;
+async function wakeOn() {
+  if (!('wakeLock' in navigator) || wl) return !!wl || 'wakeLock' in navigator;
+  try { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); return true; } catch (e) { return false; }
+}
+function wakeOff() { try { if (wl) wl.release(); } catch (e) {} wl = null; }
+function wakeOffIfIdle() { if (!pocketOn) wakeOff(); }
+function pkTick() {
+  const d = new Date();
+  $('#pkClock').textContent = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+  const s = S.songs[curId()];
+  $('#pkTitle').textContent = s ? (s.title || '') : '';
+  $('#pkBox').style.transform = `translate(${Math.round(Math.random() * 40 - 20)}px, ${Math.round(Math.random() * 80 - 40)}px)`;
+}
+async function enterPocket() {
+  pocketOn = true;
+  $('#pocket').classList.add('show');
+  pkTick(); pkIv = setInterval(pkTick, 20000);
+  pocketFs = false;
+  try { if (document.documentElement.requestFullscreen) { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); pocketFs = true; } } catch (e) {}
+  const ok = await wakeOn();
+  if (!ok) toast('เครื่องนี้ล็อกให้จอติดไม่ได้ ให้ตั้งเวลาปิดหน้าจอในการตั้งค่าเครื่องให้นานขึ้นแทน');
+}
+function exitPocket() {
+  pocketOn = false; pocketFs = false;
+  $('#pocket').classList.remove('show');
+  clearInterval(pkIv); wakeOff();
+  try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+}
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && pocketOn && pocketFs) exitPocket(); });
+$('#pocket').addEventListener('click', () => { const n = Date.now(); if (n - lastTap < 450) exitPocket(); lastTap = n; });
+
+/* ================= UI: now playing ================= */
+function updateButtons() {
+  const ph = isPlaying ? '#i-pause' : '#i-play';
+  $('#uPlay').setAttribute('href', ph);
+  $('#uMiniPlay').setAttribute('href', ph);
+  document.body.classList.toggle('playing', isPlaying);
+  const sh = $('#bShuffle'); sh.classList.toggle('on', S.shuffle); sh.classList.toggle('dim', !S.shuffle);
+  const rp = $('#bRepeat'); rp.classList.toggle('on', S.repeat !== 'off'); rp.classList.toggle('dim', S.repeat === 'off');
+  $('#uRepeat').setAttribute('href', S.repeat === 'one' ? '#i-repeat1' : '#i-repeat');
+  if ('mediaSession' in navigator) try { navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'; } catch (e) {}
+}
+function updateNP() {
+  const id = curId(), s = id && S.songs[id];
+  $('#vidEmpty').hidden = !!id;
+  const title = s ? (s.title || 'กำลังโหลดชื่อเพลง…') : 'ยังไม่ได้เลือกเพลง';
+  const artist = s ? (s.author || 'YouTube') : 'ฟังเพลงจาก YouTube ทำคิวและเพลย์ลิสต์ของคุณเอง';
+  $('#npTitle').textContent = title; $('#npArtist').textContent = artist;
+  $('#miniTitle').textContent = title; $('#miniArtist').textContent = artist;
+  if (id && $('#miniImg').dataset.id !== id) { $('#miniImg').src = thumb(id); $('#miniImg').dataset.id = id; }
+  document.title = s && s.title ? s.title + ' · ฟังเพลง' : 'ฟังเพลง';
+  if ('mediaSession' in navigator && s && window.MediaMetadata) {
+    try { navigator.mediaSession.metadata = new MediaMetadata({ title: s.title || 'ฟังเพลง', artist: s.author || '', artwork: [{ src: thumb(id), sizes: '320x180', type: 'image/jpeg' }] }); } catch (e) {}
+  }
+  updateMini();
+}
+let npVisible = true;
+function updateMini() { $('#mini').classList.toggle('show', !npVisible && !!curId()); }
+if ('IntersectionObserver' in window) new IntersectionObserver(es => { npVisible = es[0].isIntersecting; updateMini(); }).observe($('#np .ctrls'));
+function applyCompact() {
+  const c = !!S.settings.compact;
+  $('#np').classList.toggle('compact', c);
+  $('#uCompact').setAttribute('href', c ? '#i-more2' : '#i-less');
+  $('#compactLbl').textContent = c ? 'ขยายวิดีโอ' : 'ย่อวิดีโอ';
+  $('#setCompact').checked = c;
+}
+
+/* ================= UI: lists ================= */
+function songSub(s) {
+  const parts = [s.author, s.dur ? fmt(s.dur) : ''].filter(Boolean);
+  return esc(parts.join(' · ')) + (s.err ? (parts.length ? ' · ' : '') + '<span class="bad">เล่นไม่ได้</span>' : '');
+}
+function songRow(id, o) {
+  const s = S.songs[id] || { id };
+  return `<div class="row${o.cur ? ' cur' : ''}" data-id="${id}"${o.i != null ? ` data-i="${o.i}"` : ''}>`
+    + `<img class="th" loading="lazy" src="${thumb(id)}" alt="">`
+    + `<div class="meta"><div class="t${s.title ? '' : ' ld'}">${esc(s.title || 'กำลังโหลดชื่อเพลง…')}</div><div class="a">${songSub(s)}</div></div>`
+    + (o.acts || '') + '</div>';
+}
+const moreBtn = `<button class="ib" type="button" data-act="more" aria-label="ตัวเลือก">${ic('i-more')}</button>`;
+const eqHtml = '<span class="eq" aria-label="กำลังเล่น"><i></i><i></i><i></i></span>';
+function emptyHtml(icon, title, sub, goAdd) {
+  return `<div class="empty">${ic(icon)}<b>${esc(title)}</b>${sub ? esc(sub) : ''}${goAdd ? `<br><button class="btn pri" type="button" data-go="add">${ic('i-plus')}เพิ่มเพลง</button>` : ''}</div>`;
+}
+function patchSong(id) {
+  const s = S.songs[id]; if (!s) return;
+  document.querySelectorAll(`.row[data-id="${id}"]`).forEach(r => {
+    const t = r.querySelector('.t'); t.textContent = s.title || 'กำลังโหลดชื่อเพลง…'; t.classList.toggle('ld', !s.title);
+    r.querySelector('.a').innerHTML = songSub(s);
+  });
+  if (id === curId()) updateNP();
+}
+
+let tab = 'queue', openPl = null, results = [];
+function renderTab() {
+  if (tab === 'queue') renderQueue();
+  else if (tab === 'lib') renderLib();
+  else if (tab === 'pl') renderPl();
+  else if (tab === 'add') { renderTarget(); renderResults(); }
+  else if (tab === 'set') renderSettings();
+}
+function switchTab(t) {
+  if (tab === t && t === 'pl' && openPl) { openPl = null; }
+  tab = t;
+  $$('.nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  $$('.sec').forEach(s => s.classList.toggle('on', s.id === 'sec-' + t));
+  renderTab();
+  const top = $('#main').getBoundingClientRect().top + scrollY - 4;
+  if (scrollY > top) scrollTo({ top });
+}
+function renderQueue() {
+  const el = $('#qList');
+  $('#qCount').textContent = S.queue.length ? S.queue.length + ' เพลง' : '';
+  $('#bQClear').hidden = S.queue.length < 2;
+  if (!S.queue.length) { el.innerHTML = emptyHtml('i-queue', 'ยังไม่มีเพลงในคิว', 'เลือกเพลงจากคลังเพลง หรือวางลิงก์ YouTube เพื่อเริ่มฟัง', true); return; }
+  el.innerHTML = S.queue.map((id, i) => songRow(id, {
+    i, cur: i === S.qi,
+    acts: i === S.qi ? eqHtml + moreBtn : `<button class="ib" type="button" data-act="rm" aria-label="เอาออกจากคิว">${ic('i-close')}</button>` + moreBtn
+  })).join('');
+}
+function libIds() {
+  const f = $('#libFilter').value.trim().toLowerCase();
+  if (!f) return S.order;
+  return S.order.filter(id => { const s = S.songs[id] || {}; return ((s.title || '') + ' ' + (s.author || '')).toLowerCase().includes(f); });
+}
+function renderLib() {
+  const el = $('#libList'), ids = libIds(), cur = curId();
+  $('#libCount').textContent = S.order.length ? S.order.length + ' เพลง' : '';
+  $('#bLibPlay').disabled = $('#bLibShuf').disabled = !ids.length;
+  if (!S.order.length) { el.innerHTML = emptyHtml('i-lib', 'คลังเพลงยังว่างอยู่', 'เพิ่มเพลงจากลิงก์ YouTube ได้เลย', true); return; }
+  if (!ids.length) { el.innerHTML = emptyHtml('i-search', 'ไม่พบเพลงที่ค้นหา'); return; }
+  el.innerHTML = ids.map(id => songRow(id, { cur: id === cur, acts: moreBtn })).join('');
+}
+function renderPl() {
+  const d = openPl && getPl(openPl);
+  if (!d) openPl = null;
+  $('#plIndex').hidden = !!d; $('#plDetail').hidden = !d;
+  if (d) {
+    $('#plName').textContent = d.name;
+    $('#bPlPlay').disabled = $('#bPlShuf').disabled = !d.ids.length;
+    const cur = curId();
+    $('#plSongs').innerHTML = d.ids.length
+      ? d.ids.map((id, i) => songRow(id, { i, cur: id === cur, acts: moreBtn })).join('')
+      : emptyHtml('i-pl', 'เพลย์ลิสต์นี้ยังว่าง', 'กด “เพิ่มเพลง” หรือกด ⋮ ที่เพลงในคลังเพลงแล้วเลือก “เพิ่มลงเพลย์ลิสต์”');
+    return;
+  }
+  const el = $('#plList');
+  if (!S.playlists.length) { el.innerHTML = emptyHtml('i-pl', 'ยังไม่มีเพลย์ลิสต์', 'กด “สร้างใหม่” หรือวางลิงก์เพลย์ลิสต์ YouTube ที่แท็บ “เพิ่มเพลง” เพื่อนำเข้าทั้งชุด'); return; }
+  el.innerHTML = S.playlists.map(p => `<div class="row" data-pl="${esc(p.id)}">`
+    + (p.ids[0] ? `<img class="th" loading="lazy" src="${thumb(p.ids[0])}" alt="">` : `<div class="th">${ic('i-pl')}</div>`)
+    + `<div class="meta"><div class="t">${esc(p.name)}</div><div class="a">${p.ids.length} เพลง</div></div>`
+    + `<button class="ib" type="button" data-act="play" aria-label="เล่น">${ic('i-play')}</button>${moreBtn}</div>`).join('');
+}
+let addTargetPref = '';
+function renderTarget() {
+  const sel = $('#addTarget'), v = addTargetPref || sel.value;
+  sel.innerHTML = '<option value="">คลังเพลง</option>'
+    + S.playlists.map(p => `<option value="${esc(p.id)}">เพลย์ลิสต์: ${esc(p.name)}</option>`).join('')
+    + '<option value="__new">＋ สร้างเพลย์ลิสต์ใหม่…</option>';
+  sel.value = v && v !== '__new' && getPl(v) ? v : '';
+  addTargetPref = '';
+}
+function renderResults() {
+  $('#searchHint').innerHTML = S.settings.apiKey ? '' : 'ยังไม่ได้ใส่ API key จึงจะเปิดผลค้นหาในหน้า YouTube ให้ (ใส่ key ได้ที่ <b>ตั้งค่า</b> เพื่อค้นหาในแอป)';
+  const cur = curId(), lib = new Set(S.order);
+  $('#results').innerHTML = results.map(id => songRow(id, {
+    cur: id === cur,
+    acts: `<button class="ib" type="button" data-act="keep" aria-label="เก็บลงคลังเพลง">${ic(lib.has(id) ? 'i-check' : 'i-plus')}</button>${moreBtn}`
+  })).join('');
+}
+function renderSettings() {
+  $('#setBg').checked = !!S.settings.bgResume;
+  $('#setCompact').checked = !!S.settings.compact;
+  $('#setKey').value = S.settings.apiKey || '';
+  $('#keyOrigin').textContent = location.origin + '/*';
+  $('#ver').textContent = VERSION;
+}
+
+/* ================= library actions ================= */
+function addToLibrary(ids, plId) {
+  const lib = new Set(S.order); let n = 0;
+  const fresh = ids.filter(id => !lib.has(id));
+  fresh.forEach(id => { ensureSong(id); n++; });
+  S.order = fresh.concat(S.order);
+  ids.forEach(ensureSong);
+  const pl = plId && getPl(plId);
+  if (pl) ids.forEach(id => { if (!pl.ids.includes(id)) pl.ids.push(id); });
+  save(); renderTab();
+  return n;
+}
+function removeFromLibrary(id) {
+  const snap = JSON.stringify({ order: S.order, playlists: S.playlists });
+  S.order = S.order.filter(x => x !== id);
+  S.playlists.forEach(p => { p.ids = p.ids.filter(x => x !== id); });
+  save(); renderTab();
+  toast('ลบออกจากคลังเพลงแล้ว', { label: 'เลิกทำ', fn: () => { const d = JSON.parse(snap); S.order = d.order; S.playlists = d.playlists; save(); renderTab(); } });
+}
+function createPl(name, ids) { const p = { id: uid(), name: name.slice(0, 80), ids: (ids || []).slice() }; S.playlists.unshift(p); save(); return p; }
+function addIdsToPl(p, ids) {
+  let n = 0;
+  ids.forEach(id => { if (!p.ids.includes(id)) { p.ids.push(id); n++; } });
+  addToLibrary(ids);
+  return n;
+}
+function pickPlaylist(ids) {
+  const items = S.playlists.map(p => ({
+    ic: 'i-pl', label: p.name, note: p.ids.length + ' เพลง',
+    fn: () => { const n = addIdsToPl(p, ids); toast(n ? `เพิ่มลง “${p.name}” แล้ว` : `มีอยู่ใน “${p.name}” แล้ว`); }
+  }));
+  items.unshift({ ic: 'i-plus', label: 'สร้างเพลย์ลิสต์ใหม่…', fn: async () => {
+    const name = await askText('ตั้งชื่อเพลย์ลิสต์', '', 'เช่น เพลงฟังตอนขับรถ');
+    if (!name) return;
+    const p = createPl(name); addIdsToPl(p, ids); toast(`สร้าง “${p.name}” แล้ว`);
+  } });
+  menu('เพิ่มลงเพลย์ลิสต์', items);
+}
+async function copyLink(id) {
+  try { await navigator.clipboard.writeText(watchUrl(id)); toast('คัดลอกลิงก์แล้ว'); }
+  catch (e) { toast(watchUrl(id)); }
+}
+function songMenu(id, ctx) {
+  const s = ensureSong(id), items = [];
+  const inLib = S.order.includes(id);
+  if (ctx.from === 'queue') {
+    if (ctx.i !== S.qi) items.push({ ic: 'i-play', label: 'เล่นเพลงนี้', fn: () => playIndex(ctx.i) });
+    if (ctx.i > 0) items.push({ ic: 'i-up', label: 'เลื่อนขึ้น', fn: () => moveQ(ctx.i, -1) });
+    if (ctx.i < S.queue.length - 1) items.push({ ic: 'i-down', label: 'เลื่อนลง', fn: () => moveQ(ctx.i, 1) });
+  } else {
+    items.push({ ic: 'i-play', label: 'เล่นเลย', fn: () => playNowMany([id]) });
+    items.push({ ic: 'i-playnext', label: 'เล่นเป็นเพลงถัดไป', fn: () => playNext([id]) });
+    items.push({ ic: 'i-addq', label: 'เพิ่มต่อท้ายคิว', fn: () => addToQueue([id]) });
+  }
+  items.push({ ic: 'i-pl', label: 'เพิ่มลงเพลย์ลิสต์…', fn: () => pickPlaylist([id]) });
+  if (!inLib) items.push({ ic: 'i-plus', label: 'เก็บลงคลังเพลง', fn: () => { addToLibrary([id]); toast('เก็บลงคลังเพลงแล้ว'); } });
+  if (ctx.from === 'pl') {
+    const p = getPl(ctx.plId);
+    if (p && ctx.i > 0) items.push({ ic: 'i-up', label: 'เลื่อนขึ้นในเพลย์ลิสต์', fn: () => movePl(p, ctx.i, -1) });
+    if (p && ctx.i < p.ids.length - 1) items.push({ ic: 'i-down', label: 'เลื่อนลงในเพลย์ลิสต์', fn: () => movePl(p, ctx.i, 1) });
+    if (p) items.push({ ic: 'i-close', label: 'เอาออกจากเพลย์ลิสต์นี้', fn: () => { p.ids.splice(ctx.i, 1); save(); renderTab(); } });
+  }
+  items.push({ ic: 'i-open', label: 'เปิดในแอป YouTube', fn: () => openYT(id) });
+  items.push({ ic: 'i-copy', label: 'คัดลอกลิงก์', fn: () => copyLink(id) });
+  if (ctx.from === 'queue' && ctx.i !== S.qi) items.push({ ic: 'i-close', label: 'เอาออกจากคิว', fn: () => removeQ(ctx.i) });
+  if (ctx.from === 'lib') items.push({ ic: 'i-del', label: 'ลบออกจากคลังเพลง', danger: true, fn: () => removeFromLibrary(id) });
+  menu(s.title || 'เพลง', items, s.author);
+}
+function moveQ(i, d) {
+  const j = i + d; if (j < 0 || j >= S.queue.length) return;
+  [S.queue[i], S.queue[j]] = [S.queue[j], S.queue[i]];
+  if (S.qi === i) S.qi = j; else if (S.qi === j) S.qi = i;
+  save(); renderTab();
+}
+function removeQ(i) {
+  if (i === S.qi || i < 0 || i >= S.queue.length) return;
+  const id = S.queue[i];
+  S.queue.splice(i, 1);
+  if (i < S.qi) S.qi--;
+  if (S.qOrig) { const k = S.qOrig.indexOf(id); if (k >= 0) S.qOrig.splice(k, 1); }
+  save(); renderTab();
+}
+function movePl(p, i, d) {
+  const j = i + d; if (j < 0 || j >= p.ids.length) return;
+  [p.ids[i], p.ids[j]] = [p.ids[j], p.ids[i]];
+  save(); renderTab();
+}
+function plMenu(p) {
+  menu(p.name, [
+    { ic: 'i-play', label: 'เล่น', fn: () => playList(p.ids, p.ids[0]) },
+    { ic: 'i-shuffle', label: 'สุ่มเล่น', fn: () => shufflePlay(p.ids) },
+    { ic: 'i-addq', label: 'เพิ่มทั้งหมดต่อท้ายคิว', fn: () => p.ids.length && addToQueue(p.ids) },
+    { ic: 'i-edit', label: 'เปลี่ยนชื่อ', fn: async () => { const n = await askText('เปลี่ยนชื่อเพลย์ลิสต์', p.name); if (n) { p.name = n.slice(0, 80); save(); renderTab(); } } },
+    { ic: 'i-del', label: 'ลบเพลย์ลิสต์', danger: true, fn: () => {
+      const k = S.playlists.indexOf(p); if (k < 0) return;
+      S.playlists.splice(k, 1); if (openPl === p.id) openPl = null; save(); renderTab();
+      toast(`ลบ “${p.name}” แล้ว`, { label: 'เลิกทำ', fn: () => { S.playlists.splice(k, 0, p); save(); renderTab(); } });
+    } }
+  ], p.ids.length + ' เพลง');
+}
+function shufflePlay(ids) {
+  if (!ids.length) return;
+  if (!S.shuffle) { S.shuffle = true; updateButtons(); }
+  playList(ids, ids[Math.floor(Math.random() * ids.length)]);
+}
+
+/* ================= adding songs ================= */
+async function addFromText(text, playIt) {
+  const { vids, lists } = parseLinks(text);
+  if (!vids.length && !lists.length) { toast('ไม่พบลิงก์ YouTube ในข้อความ'); return false; }
+  let target = $('#addTarget').value;
+  if (target === '__new') target = '';
+  if (vids.length) {
+    const n = addToLibrary(vids, target);
+    if (playIt) playNowMany(vids);
+    const where = target && getPl(target) ? `ลง “${getPl(target).name}”` : 'ลงคลังเพลง';
+    toast(n || target ? `เพิ่ม ${vids.length} เพลง${where}แล้ว` : 'มีเพลงนี้อยู่ในคลังแล้ว');
+  }
+  const explicit = lists.filter(l => l.explicit);
+  for (const l of explicit) await importPlaylist(l.list, playIt && !vids.length);
+  if (!explicit.length && lists.length) {
+    setTimeout(() => toast('ลิงก์นี้มาจากเพลย์ลิสต์', { label: 'นำเข้าทั้งเพลย์ลิสต์', fn: () => importPlaylist(lists[0].list, false) }), 1600);
+  }
+  return true;
+}
+function fetchPlaylistIds(listId) {
+  return new Promise((resolve, reject) => {
+    if (!window.YT || !YT.Player) return reject(new Error('player'));
+    const box = document.createElement('div'); box.className = 'helper';
+    const inner = document.createElement('div'); box.appendChild(inner); document.body.appendChild(box);
+    let done = false, tries = 0, hp = null, iv = 0;
+    const finish = (ids, err) => {
+      if (done) return; done = true; clearInterval(iv);
+      try { hp && hp.destroy(); } catch (e) {}
+      box.remove();
+      err ? reject(err) : resolve(ids);
+    };
+    hp = new YT.Player(inner, {
+      host: 'https://www.youtube-nocookie.com', width: 200, height: 200,
+      playerVars: { listType: 'playlist', list: listId, autoplay: 0, origin: location.origin },
+      events: { onError: e => finish(null, new Error('code ' + e.data)) }
+    });
+    iv = setInterval(() => {
+      tries++;
+      try { const pl = hp.getPlaylist && hp.getPlaylist(); if (pl && pl.length) return finish(pl.slice()); } catch (e) {}
+      if (tries > 50) finish(null, new Error('timeout'));
+    }, 400);
+  });
+}
+async function importPlaylist(listId, playAfter) {
+  toast('กำลังนำเข้าเพลย์ลิสต์…', null, 20000);
+  try {
+    const ids = (await fetchPlaylistIds(listId)).filter(id => ID_RE.test(id));
+    if (!ids.length) throw new Error('empty');
+    const meta = await oembed('https://www.youtube.com/playlist?list=' + listId);
+    const name = (meta && meta.title) || ('เพลย์ลิสต์ ' + new Date().toLocaleDateString('th-TH'));
+    let p = S.playlists.find(x => x.src === listId);
+    if (p) ids.forEach(id => { if (!p.ids.includes(id)) p.ids.push(id); });
+    else { p = createPl(name, ids); p.src = listId; }
+    addToLibrary(ids);
+    toast(`นำเข้า “${p.name}” ${ids.length} เพลงแล้ว`, { label: 'เปิดดู', fn: () => { openPl = p.id; switchTab('pl'); } });
+    if (playAfter) playList(p.ids, p.ids[0]);
+  } catch (e) {
+    toast('นำเข้าเพลย์ลิสต์ไม่ได้ (อาจเป็นเพลย์ลิสต์ส่วนตัว หรืออินเทอร์เน็ตมีปัญหา)');
+  }
+}
+async function ytSearch(q) {
+  const url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=25'
+    + '&q=' + encodeURIComponent(q) + '&key=' + encodeURIComponent(S.settings.apiKey);
+  const r = await fetch(url);
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message || 'API error');
+  return (j.items || []).filter(it => it.id && it.id.videoId).map(it => ({
+    id: it.id.videoId, title: decodeHtml(it.snippet.title || ''), author: decodeHtml(it.snippet.channelTitle || '')
+  }));
+}
+
+/* shared from the YouTube app (Android share sheet) or opened with ?v= */
+let lastShared = '';
+function handleLaunch(href) {
+  let u; try { u = new URL(href); } catch (e) { return; }
+  const txt = ['url', 'text', 'title', 'v'].map(k => u.searchParams.get(k)).filter(Boolean).join('\n');
+  if (!txt) return;
+  if (u.search) history.replaceState(null, '', location.pathname);
+  if (txt === lastShared) return;
+  lastShared = txt;
+  const { vids, lists } = parseLinks(txt);
+  if (!vids.length && !lists.length) { toast('ไม่พบลิงก์ YouTube ในสิ่งที่แชร์มา'); return; }
+  if (vids.length) {
+    addToLibrary(vids);
+    if (isPlaying) {
+      const s = S.songs[vids[0]];
+      menu(s.title || 'เพิ่มเพลงแล้ว', [
+        { ic: 'i-play', label: 'เล่นเลย', fn: () => playNowMany(vids) },
+        { ic: 'i-playnext', label: 'เล่นเป็นเพลงถัดไป', fn: () => playNext(vids) },
+        { ic: 'i-check', label: 'เก็บไว้ในคลังเพลงอย่างเดียว', fn: () => toast('เก็บลงคลังเพลงแล้ว') }
+      ], 'เก็บลงคลังเพลงแล้ว');
+    } else { playNowMany(vids); toast('เพิ่มลงคลังเพลงแล้ว'); }
+  } else {
+    const run = () => importPlaylist(lists[0].list, !isPlaying);
+    if (window.YT && YT.Player) run(); else waitYT(run);
+  }
+}
+function waitYT(fn) { let n = 0; const iv = setInterval(() => { if (window.YT && YT.Player) { clearInterval(iv); fn(); } else if (++n > 60) clearInterval(iv); }, 500); }
+
+/* ================= sheets & toast ================= */
+const ov = $('#ov'), sh = $('#sheet');
+let sheetCancel = null;
+function openSheet(html, onCancel) {
+  sh.innerHTML = '<div class="grab"></div>' + html;
+  sheetCancel = onCancel || null;
+  ov.classList.add('show'); ov.setAttribute('aria-hidden', 'false');
+}
+function closeSheet(cancelled) {
+  ov.classList.remove('show'); ov.setAttribute('aria-hidden', 'true');
+  const c = sheetCancel; sheetCancel = null;
+  if (cancelled && c) c();
+}
+ov.addEventListener('click', e => { if (e.target === ov) closeSheet(true); });
+function menu(title, items, sub) {
+  openSheet((title ? `<div class="sh-t">${esc(title)}${sub ? `<small>${esc(sub)}</small>` : ''}</div>` : '')
+    + items.map((it, k) => `<button class="it${it.danger ? ' danger' : ''}" type="button" data-k="${k}">${ic(it.ic)}<span>${esc(it.label)}</span>${it.note ? `<small>${esc(it.note)}</small>` : ''}</button>`).join(''));
+  sh.querySelectorAll('.it').forEach(b => { b.onclick = () => { const it = items[+b.dataset.k]; closeSheet(false); setTimeout(it.fn, 10); }; });
+}
+function askText(title, value, ph) {
+  return new Promise(resolve => {
+    openSheet(`<div class="sh-t">${esc(title)}</div><form class="ask" id="askF"><input class="field" id="askIn" maxlength="80" value="${esc(value || '')}" placeholder="${esc(ph || '')}" enterkeyhint="done" autocomplete="off">`
+      + '<div class="acts end"><button type="button" class="btn" id="askNo">ยกเลิก</button><button type="submit" class="btn pri">ตกลง</button></div></form>', () => resolve(null));
+    const inp = $('#askIn');
+    setTimeout(() => { inp.focus(); inp.select(); }, 80);
+    $('#askNo').onclick = () => closeSheet(true);
+    $('#askF').onsubmit = e => { e.preventDefault(); const v = inp.value.trim(); if (!v) return inp.focus(); closeSheet(false); resolve(v); };
+  });
+}
+function askConfirm(title, msg, okLabel) {
+  return new Promise(resolve => {
+    openSheet(`<div class="sh-t">${esc(title)}</div><p class="hint" style="padding:0 8px">${esc(msg)}</p>`
+      + `<div class="acts end" style="padding:0 6px"><button type="button" class="btn" id="cfNo">ยกเลิก</button><button type="button" class="btn danger" id="cfOk">${esc(okLabel)}</button></div>`, () => resolve(false));
+    $('#cfNo').onclick = () => closeSheet(true);
+    $('#cfOk').onclick = () => { closeSheet(false); resolve(true); };
+  });
+}
+let toastT = 0;
+function toast(msg, action, ms) {
+  const el = $('#toast');
+  el.innerHTML = `<span>${esc(msg)}</span>` + (action ? `<button type="button">${esc(action.label)}</button>` : '');
+  if (action) el.querySelector('button').onclick = () => { el.classList.remove('show'); action.fn(); };
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), ms || (action ? 6000 : 2600));
+}
+
+/* ================= wiring ================= */
+$('#bPlay').onclick = togglePlay;
+$('#bNext').onclick = () => next(false);
+$('#bPrev').onclick = prev;
+$('#bShuffle').onclick = () => setShuffle(!S.shuffle);
+$('#bRepeat').onclick = cycleRepeat;
+$('#bSleep').onclick = sleepMenu;
+$('#bPocket').onclick = enterPocket;
+$('#bCompact').onclick = () => { S.settings.compact = !S.settings.compact; save(); applyCompact(); };
+$('#miniPlay').onclick = e => { e.stopPropagation(); togglePlay(); };
+$('#miniNext').onclick = e => { e.stopPropagation(); next(false); };
+$('#mini').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
+$$('.nav button').forEach(b => { b.onclick = () => switchTab(b.dataset.tab); });
+document.addEventListener('click', e => { const g = e.target.closest('[data-go]'); if (g) switchTab(g.dataset.go); });
+
+function onRows(el, fn) {
+  el.addEventListener('click', e => {
+    const row = e.target.closest('.row'); if (!row || !el.contains(row)) return;
+    const a = e.target.closest('[data-act]');
+    fn(a ? a.dataset.act : 'tap', row.dataset.id, row.dataset.i != null ? +row.dataset.i : -1, row);
+  });
+}
+onRows($('#qList'), (act, id, i) => {
+  if (act === 'rm') removeQ(i);
+  else if (act === 'more') songMenu(id, { from: 'queue', i });
+  else if (i === S.qi) togglePlay();
+  else playIndex(i);
+});
+onRows($('#libList'), (act, id) => {
+  if (act === 'more') songMenu(id, { from: 'lib' });
+  else if (id === curId()) togglePlay();
+  else playList(libIds(), id);
+});
+onRows($('#plList'), (act, _id, _i, row) => {
+  const p = getPl(row.dataset.pl); if (!p) return;
+  if (act === 'play') { if (p.ids.length) playList(p.ids, p.ids[0]); else toast('เพลย์ลิสต์นี้ยังว่าง'); }
+  else if (act === 'more') plMenu(p);
+  else { openPl = p.id; renderPl(); }
+});
+onRows($('#plSongs'), (act, id, i) => {
+  const p = getPl(openPl); if (!p) return;
+  if (act === 'more') songMenu(id, { from: 'pl', plId: p.id, i });
+  else if (id === curId()) togglePlay();
+  else playList(p.ids, id);
+});
+onRows($('#results'), (act, id) => {
+  if (act === 'keep') { const n = addToLibrary([id]); renderResults(); toast(n ? 'เก็บลงคลังเพลงแล้ว' : 'มีอยู่ในคลังเพลงแล้ว'); }
+  else if (act === 'more') songMenu(id, { from: 'search' });
+  else playNowMany([id]);
+});
+
+$('#bQClear').onclick = () => {
+  const cur = curId();
+  const snap = { queue: S.queue.slice(), qi: S.qi, qOrig: S.qOrig };
+  S.queue = cur ? [cur] : []; S.qi = cur ? 0 : -1; S.qOrig = null;
+  save(); renderTab();
+  toast('ล้างคิวแล้ว (เหลือเพลงที่กำลังเล่น)', { label: 'เลิกทำ', fn: () => { Object.assign(S, snap); save(); renderTab(); } });
+};
+$('#libFilter').addEventListener('input', renderLib);
+$('#bLibPlay').onclick = () => { const ids = libIds(); if (ids.length) playList(ids, ids[0]); };
+$('#bLibShuf').onclick = () => shufflePlay(libIds());
+$('#bPlNew').onclick = async () => { const n = await askText('ตั้งชื่อเพลย์ลิสต์', '', 'เช่น เพลงฟังตอนขับรถ'); if (n) { const p = createPl(n); openPl = p.id; renderPl(); } };
+$('#bPlBack').onclick = () => { openPl = null; renderPl(); };
+$('#bPlMore').onclick = () => { const p = getPl(openPl); if (p) plMenu(p); };
+$('#bPlPlay').onclick = () => { const p = getPl(openPl); if (p && p.ids.length) playList(p.ids, p.ids[0]); };
+$('#bPlShuf').onclick = () => { const p = getPl(openPl); if (p) shufflePlay(p.ids); };
+$('#bPlAdd').onclick = () => { addTargetPref = openPl; switchTab('add'); $('#addText').focus(); };
+
+$('#addTarget').addEventListener('change', async e => {
+  if (e.target.value !== '__new') return;
+  const n = await askText('ตั้งชื่อเพลย์ลิสต์ใหม่', '', 'เช่น เพลงฟังตอนขับรถ');
+  if (n) { addTargetPref = createPl(n).id; } else addTargetPref = '';
+  renderTarget();
+});
+$('#bPaste').onclick = async () => {
+  try {
+    const t = await navigator.clipboard.readText();
+    if (!t) return toast('คลิปบอร์ดว่างอยู่');
+    const ta = $('#addText'); ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t.trim();
+  } catch (e) { toast('กดค้างที่ช่องด้านบนแล้วเลือก “วาง” แทน'); $('#addText').focus(); }
+};
+const doAdd = async playIt => { const ta = $('#addText'); if (await addFromText(ta.value, playIt)) ta.value = ''; };
+$('#bAdd').onclick = () => doAdd(false);
+$('#bAddPlay').onclick = () => doAdd(true);
+$('#searchForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const q = $('#q').value.trim(); if (!q) return;
+  if (parseLinks(q).vids.length || parseLinks(q).lists.length) { await addFromText(q, true); $('#q').value = ''; return; }
+  $('#q').blur();
+  if (!S.settings.apiKey) {
+    window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(q), '_blank', 'noopener');
+    $('#searchHint').innerHTML = 'เปิดผลค้นหาใน YouTube แล้ว เจอเพลงที่ชอบให้กด <b>แชร์</b> → เลือกแอป <b>ฟังเพลง</b> (Android) หรือ <b>คัดลอกลิงก์</b> แล้วกลับมาวางด้านบน';
+    return;
+  }
+  $('#results').innerHTML = '<div class="empty">กำลังค้นหา…</div>';
+  try {
+    const items = await ytSearch(q);
+    items.forEach(it => { const s = S.songs[it.id] || (S.songs[it.id] = { id: it.id, added: Date.now() }); if (!s.title) { s.title = it.title; s.author = it.author; } });
+    results = items.map(it => it.id);
+    renderResults();
+    if (!results.length) $('#results').innerHTML = emptyHtml('i-search', 'ไม่พบผลลัพธ์');
+  } catch (err) {
+    results = [];
+    $('#results').innerHTML = `<div class="empty bad">ค้นหาไม่สำเร็จ: ${esc(err.message)}</div>`;
+  }
+});
+
+$('#setBg').onchange = e => { S.settings.bgResume = e.target.checked; save(); };
+$('#setCompact').onchange = e => { S.settings.compact = e.target.checked; save(); applyCompact(); };
+$('#bKeySave').onclick = () => { S.settings.apiKey = $('#setKey').value.trim(); save(); toast(S.settings.apiKey ? 'บันทึก API key แล้ว ลองค้นหาที่แท็บ “เพิ่มเพลง”' : 'ลบ API key แล้ว'); };
+$('#bExport').onclick = () => {
+  const keep = new Set(S.order); S.playlists.forEach(p => p.ids.forEach(id => keep.add(id)));
+  const songs = {}; keep.forEach(id => { if (S.songs[id]) songs[id] = S.songs[id]; });
+  const data = { app: 'fangpleng', v: 1, exported: new Date().toISOString(), songs, order: S.order, playlists: S.playlists };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
+  a.download = 'fangpleng-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast('ส่งออกไฟล์สำรองแล้ว');
+};
+$('#bImport').onclick = () => $('#fileIn').click();
+$('#fileIn').onchange = async e => {
+  const f = e.target.files && e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!d || !Array.isArray(d.order)) throw new Error('bad');
+    if (d.songs && typeof d.songs === 'object') for (const [id, s] of Object.entries(d.songs)) {
+      if (!ID_RE.test(id) || !s || typeof s !== 'object') continue;
+      if (!S.songs[id] || !S.songs[id].title) S.songs[id] = { id, title: String(s.title || ''), author: String(s.author || ''), dur: +s.dur || 0, added: +s.added || Date.now() };
+    }
+    const lib = new Set(S.order); let ns = 0, np = 0;
+    const take = id => { if (ID_RE.test(id) && !lib.has(id)) { lib.add(id); S.order.push(id); ensureSong(id); ns++; } };
+    d.order.forEach(take);
+    if (Array.isArray(d.playlists)) for (const p of d.playlists) {
+      if (!p || typeof p.name !== 'string' || !Array.isArray(p.ids)) continue;
+      const ids = p.ids.filter(id => ID_RE.test(id)); ids.forEach(take);
+      const ex = typeof p.id === 'string' && getPl(p.id);
+      if (ex) ids.forEach(id => { if (!ex.ids.includes(id)) ex.ids.push(id); });
+      else { S.playlists.push({ id: (typeof p.id === 'string' && p.id) || uid(), name: p.name.slice(0, 80), ids, src: typeof p.src === 'string' ? p.src : undefined }); np++; }
+    }
+    save(); renderTab();
+    toast(`นำเข้าแล้ว: เพลงใหม่ ${ns} เพลง, เพลย์ลิสต์ใหม่ ${np} รายการ`);
+  } catch (err) { toast('ไฟล์สำรองไม่ถูกต้อง'); }
+};
+$('#bReset').onclick = async () => {
+  if (!await askConfirm('ล้างข้อมูลทั้งหมด?', 'คลังเพลง เพลย์ลิสต์ คิว และการตั้งค่าในเครื่องนี้จะถูกลบทั้งหมด', 'ลบทั้งหมด')) return;
+  try { localStorage.removeItem(LS); } catch (e) {}
+  S = defaults(); saveNow = () => {}; location.reload();
+};
+
+/* install */
+let installEvt = null;
+const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+if (!standalone) $('#bInstall').hidden = false; else $('#installCard').hidden = true;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('#bInstall').hidden = false; });
+addEventListener('appinstalled', () => { $('#bInstall').hidden = true; installEvt = null; toast('ติดตั้งแล้ว เปิดได้จากหน้าจอหลัก'); });
+$('#bInstall').onclick = async () => {
+  if (installEvt) { installEvt.prompt(); try { await installEvt.userChoice; } catch (e) {} installEvt = null; return; }
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  openSheet('<div class="sh-t">ติดตั้งลงโทรศัพท์</div><div style="padding:0 8px 6px">'
+    + (ios ? '<p class="hint">ใน Safari แตะปุ่ม <b>แชร์</b> (สี่เหลี่ยมมีลูกศรขึ้น) ด้านล่าง → เลื่อนหา <b>เพิ่มไปยังหน้าจอโฮม</b> → <b>เพิ่ม</b></p>'
+      : '<p class="hint">ใน Chrome แตะเมนู <b>⋮</b> มุมขวาบน → <b>ติดตั้งแอป</b> หรือ <b>เพิ่มลงในหน้าจอหลัก</b> → <b>ติดตั้ง</b></p><p class="hint">ติดตั้งแล้วจะแชร์เพลงจากแอป YouTube มาที่แอปนี้ได้</p>')
+    + '<div class="acts end"><button type="button" class="btn pri" id="okInst">เข้าใจแล้ว</button></div></div>');
+  $('#okInst').onclick = () => closeSheet(false);
+};
+
+/* ================= start ================= */
+applyCompact(); updateButtons(); updateNP(); updateSleep(); renderTab();
+[...new Set([...S.order, ...S.queue, ...S.playlists.flatMap(p => p.ids)])].forEach(id => { if (S.songs[id] && !S.songs[id].title) needMeta(id); });
+handleLaunch(location.href);
+if ('launchQueue' in window) try { window.launchQueue.setConsumer(p => { if (p && p.targetURL) handleLaunch(p.targetURL); }); } catch (e) {}
+loadYT();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
